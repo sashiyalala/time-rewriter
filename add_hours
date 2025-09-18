@@ -1,0 +1,60 @@
+#!/bin/bash
+# ^ To make sure the shell script is always run with bash  #
+############################################################
+# Help  (what will show up to display help with params)    #
+############################################################
+helpFunction()
+{
+   echo ""
+   echo "Usage: $0 [-h] -d <some/git/repo/>"
+   echo -e "\t-h Display this help"
+   echo -e "\t-d Directory where you want to apply the script"
+#    echo -e "\t-c Description of what is parameterC"
+   exit 1 # Exit script after printing help
+}
+
+
+############################################################
+# :h -> "options", like boolean values                     #
+# d: -> "arguments" for which you need to pass a value     #
+############################################################
+while getopts ":hd:" opt
+do
+   case "$opt" in
+      h ) helpFunction
+        exit;;
+      d ) targetDir="$OPTARG" ;;
+      ? ) helpFunction  # I.e., any other option/argument
+        echo "Error: Invalid option/argument"
+        exit;; # Print helpFunction in case parameter is non-existent
+   esac
+done
+
+# Print helpFunction in case parameters are empty
+# if [ -z "$targetDir" ] || [ -z "$parameterB" ] || [ -z "$parameterC" ]
+if [ -z "$targetDir" ]
+then
+   echo "Some or all of the parameters are empty";
+   helpFunction
+fi
+
+############################################################
+############################################################
+# Main program                                             #
+############################################################
+############################################################
+
+echo "Hello $(git config user.name)!"
+startDir=$(pwd)
+addHoursToCommitScript="${startDir}/add_hours.py"
+# echo "${startDir}"
+# echo "${addHoursToCommitScript}"
+cd ${targetDir}
+
+workingBranch=$(git branch --show-current)
+echo "Working with current branch ${workingBranch}"
+
+git filter-repo --commit-callback "$(cat ${addHoursToCommitScript})" --refs origin/${workingBranch}..HEAD --force
+
+cd ${startDir}  # Just in case?? But I think it does it anyway??
+echo "success! :)"
